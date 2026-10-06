@@ -1,0 +1,12 @@
+{
+    "name": "krish-goyal-portfolio",
+    "private": true,
+    "description": "Krish Goyal's 3D portfolio website",
+    "scripts": {
+        "install:all": "npm --prefix inner-site install && npm --prefix room install",
+        "build:os": "npm --prefix inner-site run build && node scripts/copy-os.mjs",
+        "build": "npm run build:os && npm --prefix room run build",
+        "dev": "npm run build:os && npm --prefix room run dev",
+        "start": "npm --prefix room start"
+    }
+}
