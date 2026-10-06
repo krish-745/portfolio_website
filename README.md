@@ -12,7 +12,7 @@ portfolio_website/
 ├── room/          3D scene (Three.js + webpack) and the Express server
 │   ├── src/       scene, camera, audio and loading-screen code
 │   ├── static/    models, textures, audio (the OS build is copied to static/os)
-│   └── server/    Express server: serves the build and the contact-form API
+│   └── server/    optional Express server for self-hosting (`npm start`)
 ├── inner-site/    the OS shown on the monitor (React, Create React App)
 │   └── src/components/showcase/   portfolio pages
 ├── scripts/       build helpers
@@ -39,19 +39,18 @@ npm run dev
 ```bash
 # Builds inner-site, copies it into the room, then builds the room into room/public/
 npm run build
-
-# Serves room/public/ and the contact-form API on port 8080
-npm start
 ```
 
-The contact form sends mail through Gmail SMTP from the Express server. Set
-these environment variables before `npm start`:
+`room/public/` is a fully static site. It is deployed on Vercel using the
+settings in [vercel.json](vercel.json).
 
-| Variable         | Purpose                                                |
-| ---------------- | ------------------------------------------------------ |
-| `FOLIO_EMAIL`    | Gmail address the server sends from                    |
-| `FOLIO_PASSWORD` | Gmail app password for that address                    |
-| `FOLIO_TO`       | Where messages go (defaults to krishgoyal745@gmail.com) |
+## Contact form
 
-Under `npm run dev` there is no server, so the form shows an error asking
-visitors to email directly.
+The form posts to [Web3Forms](https://web3forms.com), which forwards each
+message to my email. The access key is read at build time from
+`REACT_APP_WEB3FORMS_KEY`:
+
+- On Vercel, set it under Project → Settings → Environment Variables.
+- Locally, put `REACT_APP_WEB3FORMS_KEY=<key>` in `inner-site/.env.local`.
+
+Without the key the form shows an error asking visitors to email directly.

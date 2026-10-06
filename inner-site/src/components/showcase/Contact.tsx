@@ -1,10 +1,17 @@
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState } from 'react';
 import colors from '../../constants/colors';
 import ghIcon from '../../assets/pictures/contact-gh.png';
 import inIcon from '../../assets/pictures/contact-in.png';
 import ResumeDownload from './ResumeDownload';
 
 export interface ContactProps {}
+
+// Messages are delivered by Web3Forms (https://web3forms.com). The access key
+// is set at build time; it only allows sending to my inbox, so it is safe to
+// ship in the client bundle.
+const WEB3FORMS_KEY = process.env.REACT_APP_WEB3FORMS_KEY;
+const FALLBACK_ERROR =
+    'The form could not send your message. Please email me at krishgoyal745@gmail.com.';
 
 // function to validate email
 const validateEmail = (email: string) => {
@@ -53,30 +60,33 @@ const Contact: React.FC<ContactProps> = (props) => {
             setFormMessageColor('red');
             return;
         }
+        if (!WEB3FORMS_KEY) {
+            setFormMessage(FALLBACK_ERROR);
+            setFormMessageColor(colors.red);
+            return;
+        }
         try {
             setIsLoading(true);
-            const res = await fetch(
-                '/api/send-email',
-                {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        company,
-                        email,
-                        name,
-                        message,
-                    }),
-                }
-            );
-            // the response will be either {success: true} or {success: false, error: message}
-            const data = (await res.json()) as
-                | {
-                      success: false;
-                      error: string;
-                  }
-                | { success: true };
+            const res = await fetch('https://api.web3forms.com/submit', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    Accept: 'application/json',
+                },
+                body: JSON.stringify({
+                    access_key: WEB3FORMS_KEY,
+                    subject: `Portfolio message from ${name}`,
+                    from_name: 'Krish Goyal Portfolio',
+                    name,
+                    email,
+                    company,
+                    message,
+                }),
+            });
+            const data = (await res.json()) as {
+                success: boolean;
+                message: string;
+            };
             if (data.success) {
                 setFormMessage(`Message successfully sent. Thank you ${name}!`);
                 setCompany('');
@@ -86,14 +96,12 @@ const Contact: React.FC<ContactProps> = (props) => {
                 setFormMessageColor(colors.blue);
                 setIsLoading(false);
             } else {
-                setFormMessage(data.error);
+                setFormMessage(FALLBACK_ERROR);
                 setFormMessageColor(colors.red);
                 setIsLoading(false);
             }
         } catch (e) {
-            setFormMessage(
-                'The form could not send your message. Please email me at krishgoyal745@gmail.com.'
-            );
+            setFormMessage(FALLBACK_ERROR);
             setFormMessageColor(colors.red);
             setIsLoading(false);
         }
@@ -119,7 +127,9 @@ const Contact: React.FC<ContactProps> = (props) => {
                     />
                     <SocialBox
                         icon={inIcon}
-                        link={'https://www.linkedin.com/in/krish-goyal-6a5362315/'}
+                        link={
+                            'https://www.linkedin.com/in/krish-goyal-6a5362315/'
+                        }
                     />
                 </div>
             </div>
@@ -212,7 +222,7 @@ const Contact: React.FC<ContactProps> = (props) => {
                             <p
                                 style={Object.assign(
                                     {},
-                                    { color: formMessageColor }
+                                    { color: formMessageColor },
                                 )}
                             >
                                 <b>
